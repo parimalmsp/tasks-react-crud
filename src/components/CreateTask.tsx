@@ -27,12 +27,12 @@ export default function CreateTask({
     e.preventDefault()
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
-      const { title, description } = task
+      const { title, description, status } = task
       // Make a POST request to create a new task
       const res = await axios.post<Task>(`${API_URL}/tasks`, {
         title,
         description,
-        status: 'pending'
+        status: status
       })
 
       // res.data is now a single Task
