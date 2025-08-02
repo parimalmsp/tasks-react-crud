@@ -28,8 +28,17 @@ export default function CreateTask({
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
 
-      const res = await axios.get<Task[]>(`${API_URL}/tasks`)
+      // Make a POST request to create a new task
+      const res = await axios.post<Task>(`${API_URL}/tasks`, {
+        title,
+        description,
+        status: 'pending'
+      })
+
+      // res.data is now a single Task
       setMessage(`Task created: ${res.data.title}`)
+
+      // Reset the form fields
       setTask({ title: '', description: '', status: 'pending' })
       onTaskCreated(res.data) // <-- call parent
     } catch {
