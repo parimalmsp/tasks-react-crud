@@ -26,7 +26,9 @@ export default function CreateTask({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const res = await axios.post<Task>('http://127.0.0.1:8000/tasks', task)
+      const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+
+      const res = await axios.get<Task[]>(`${API_URL}/tasks`)
       setMessage(`Task created: ${res.data.title}`)
       setTask({ title: '', description: '', status: 'pending' })
       onTaskCreated(res.data) // <-- call parent

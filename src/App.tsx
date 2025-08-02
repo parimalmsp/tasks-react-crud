@@ -8,7 +8,9 @@ export default function App() {
   const [tasks, setTasks] = useState<Task[]>([])
 
   const fetchTasks = async () => {
-    const res = await axios.get<Task[]>('http://127.0.0.1:8000/tasks')
+    const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+
+    const res = await axios.get<Task[]>(`${API_URL}/tasks`)
     // Sort descending by id (newest first)
     const sorted = res.data.sort((a, b) => b.id! - a.id!)
 
