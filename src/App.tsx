@@ -1,75 +1,41 @@
-import React, { ReactElement, useState } from 'react'
-import logo from './logo.svg'
-import viteLogo from './vite.svg'
-import tailwindLogo from './tailwind.svg'
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import axios from 'axios'
+import CreateTask from './components/CreateTask'
+import TaskList from './components/TaskList'
+import { Task } from './types'
 
-function App(): ReactElement {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [tasks, setTasks] = useState<Task[]>([])
+
+  const fetchTasks = async () => {
+    const res = await axios.get<Task[]>('http://127.0.0.1:8000/tasks')
+    // Sort descending by id (newest first)
+    const sorted = res.data.sort((a, b) => b.id! - a.id!)
+
+    setTasks(sorted)
+  }
+
+  useEffect(() => {
+    fetchTasks()
+  }, [])
+
+  const addTask = (task: Task) => {
+    // Newest task at the beginning
+    setTasks((prev) => [task, ...prev])
+  }
 
   return (
-    <div className="p-20 border shadow-xl border-gray-50 rounded-xl">
-      <header>
-        <div className="flex justify-center">
-          <img src={viteLogo} className="w-32 h-32" alt="vite logo" />
-          <img src={logo} className="w-32 h-32" alt="React logo" />
-          <img
-            src={tailwindLogo}
-            className="w-32 h-32"
-            alt="Tailwind CSS logo"
-          />
+    <div className="min-h-screen bg-gray-100 p-6 pt-10">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="bg-white rounded-xl shadow-md p-8">
+          <h1 className="text-3xl font-bold text-center mb-8">Task Manager</h1>
+          <CreateTask onTaskCreated={addTask} />
         </div>
-        <p className="pb-3 text-2xl">Hello Vite + React + Tailwind CSS!</p>
-        <p>
-          <button
-            className="pt-1 pb-1 pl-2 pr-2 text-sm text-purple-100 bg-purple-400 rounded"
-            onClick={() => setCount((count) => count + 1)}
-          >
-            count is: {count}
-          </button>
-        </p>
-        <p className="pt-3 pb-3">
-          Edit{' '}
-          <code className="border border-1 pl-1 pr-1 pb-0.5 pt-0.5 rounded border-purple-400 font-mono text-sm bg-purple-100 text-purple-900">
-            src/App.tsx
-          </code>{' '}
-          and save to test HMR updates.
-        </p>
-        <p>
-          <Link to="/about" className="text-purple-400 underline">
-            about
-          </Link>
-          {' | '}
-          <a
-            className="text-purple-400 underline"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-          {' | '}
-          <a
-            className="text-purple-400 underline"
-            href="https://vitejs.dev/guide/features.html"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Vite Docs
-          </a>
-          {' | '}
-          <a
-            className="text-purple-400 underline"
-            href="https://tailwindcss.com/docs"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Tailwind CSS Docs
-          </a>
-        </p>
-      </header>
+
+        <div className="bg-white rounded-xl shadow-md p-8">
+          <TaskList tasks={tasks} />
+        </div>
+      </div>
     </div>
   )
 }
-
-export default App
