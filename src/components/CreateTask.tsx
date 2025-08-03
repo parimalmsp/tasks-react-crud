@@ -1,17 +1,33 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Task } from '../types'
 
 export default function CreateTask({
-  onTaskCreated
+  onTaskCreated,
+  onTaskUpdated,
+  editingTask,
+  setEditingTask
 }: {
   onTaskCreated: (task: Task) => void
+  onTaskUpdated: (task: Task) => void
+  editingTask: Task | null
+  setEditingTask: (task: Task | null) => void
 }) {
   const [task, setTask] = useState<Task>({
     title: '',
     description: '',
     status: 'pending'
   })
+  useEffect(() => {
+    if (editingTask) {
+      setTask({
+        title: editingTask.title,
+        description: editingTask.description,
+        status: editingTask.status
+      })
+    }
+  }, [editingTask])
+
   const [message, setMessage] = useState('')
 
   const handleChange = (
@@ -28,21 +44,35 @@ export default function CreateTask({
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
       const { title, description, status } = task
-      // Make a POST request to create a new task
-      const res = await axios.post<Task>(`${API_URL}/tasks`, {
-        title,
-        description,
-        status: status
-      })
 
-      // res.data is now a single Task
-      setMessage(`Task created: ${res.data.title}`)
+      if (editingTask) {
+        // Update existing task
+        const res = await axios.put<Task>(
+          `${API_URL}/tasks/${editingTask.id}`,
+          {
+            title,
+            description,
+            status
+          }
+        )
+        setMessage(`Task updated: ${res.data.title}`)
+        onTaskUpdated(res.data)
+        setEditingTask(null) // Exit edit mode
+      } else {
+        // Create a new task
+        const res = await axios.post<Task>(`${API_URL}/tasks`, {
+          title,
+          description,
+          status
+        })
+        setMessage(`Task created: ${res.data.title}`)
+        onTaskCreated(res.data)
+      }
 
-      // Reset the form fields
+      // Reset the form
       setTask({ title: '', description: '', status: 'pending' })
-      onTaskCreated(res.data) // <-- call parent
     } catch {
-      setMessage('Error creating task')
+      setMessage(editingTask ? 'Error updating task' : 'Error creating task')
     }
   }
 
@@ -84,9 +114,9 @@ export default function CreateTask({
         </div>
         <button
           type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md w-full transition-colors"
+          className="bg-blue-500 text-white px-4 py-2 rounded"
         >
-          Create Task
+          {editingTask ? 'Update Task' : 'Create Task'}
         </button>
       </form>
       {message && <p className="mt-4 text-green-600 font-medium">{message}</p>}
